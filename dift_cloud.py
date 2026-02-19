@@ -385,26 +385,29 @@ dift = SDFeaturizer(sd_id='sd2-community/stable-diffusion-2-1')
 
 
 from torchvision.transforms import ToTensor
-filelist = ['source.png', 'target.png']
-ft = []
-imglist = []
-# img_size = 512
-img_size = 448
+import time
+ts = time.time()
 
-for filename in filelist:
-    img = Image.open(filename).convert('RGB')
-    img = img.resize((img_size, img_size))
-    imglist.append(img)
-    img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
-    ft.append(dift.forward(img_tensor,
-                           prompt=prompt,
-                           ensemble_size=2))
-ft = torch.cat(ft, dim=0)
+for i in range(10):
+    filelist = ['source.png', 'target.png']
+    ft = []
+    imglist = []
+    # img_size = 512
+    img_size = 448
 
-del dift
-torch.cuda.empty_cache()
-gc.collect()
+    for filename in filelist:
+        img = Image.open(filename).convert('RGB')
+        img = img.resize((img_size, img_size))
+        imglist.append(img)
+        img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
+        ft.append(dift.forward(img_tensor,
+                            prompt=prompt,
+                            ensemble_size=2))
+    ft = torch.cat(ft, dim=0)
 
+    torch.cuda.empty_cache()
+    gc.collect()
+    demo = Demo(imglist, ft, img_size)
+    print(ft.shape) # N+1, C, H, W
 
-demo = Demo(imglist, ft, img_size)
-print(ft.shape) # N+1, C, H, W
+print(time.time() - ts)
