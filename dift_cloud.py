@@ -391,6 +391,8 @@ import numpy as np
 from PIL import Image
 import io
 
+app = FastAPI()
+
 def run_model(image: Image.Image):
     #img_array = np.array(image.convert("L"))
     img_size = 448
