@@ -385,29 +385,61 @@ dift = SDFeaturizer(sd_id='sd2-community/stable-diffusion-2-1')
 
 
 from torchvision.transforms import ToTensor
-import time
-ts = time.time()
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import Response
+import numpy as np
+from PIL import Image
+import io
 
-for i in range(10):
-    filelist = ['source.png', 'target.png']
-    ft = []
-    imglist = []
-    # img_size = 512
+def run_model(image: Image.Image):
+    #img_array = np.array(image.convert("L"))
     img_size = 448
-
-    for filename in filelist:
-        img = Image.open(filename).convert('RGB')
-        img = img.resize((img_size, img_size))
-        imglist.append(img)
-        img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
-        ft.append(dift.forward(img_tensor,
-                            prompt=prompt,
-                            ensemble_size=2))
+    img = img.resize((img_size, img_size))
+    img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
+    ft.append(dift.forward(img_tensor,
+                           prompt=prompt,
+                           ensemble_size=2))
     ft = torch.cat(ft, dim=0)
-
     torch.cuda.empty_cache()
     gc.collect()
-    demo = Demo(imglist, ft, img_size)
-    print(ft.shape) # N+1, C, H, W
+    return ft
 
-print(time.time() - ts)
+@app.post("/process")
+async def process_image(file: UploadFile = File(...)):
+    contents = await file.read()
+    image = Image.open(io.BytesIO(contents)).convert("RGB")
+
+    result = run_model(image)
+
+    # Convert numpy array → binary buffer
+    buffer = io.BytesIO()
+    np.save(buffer, result)
+    buffer.seek(0)
+
+    return Response(
+        content=buffer.read(),
+        media_type="application/octet-stream"
+    )
+
+#filelist = ['source.png', 'target.png']
+#ft = []
+#imglist = []
+# img_size = 512
+
+
+#for filename in filelist:
+#    img = Image.open(filename).convert('RGB')
+#    img = img.resize((img_size, img_size))
+#    imglist.append(img)
+#    img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
+#    ft.append(dift.forward(img_tensor,
+#                           prompt=prompt,
+#                           ensemble_size=2))
+#ft = torch.cat(ft, dim=0)
+
+#torch.cuda.empty_cache()
+#gc.collect()
+
+
+#demo = Demo(imglist, ft, img_size)
+#print(ft.shape) # N+1, C, H, W
