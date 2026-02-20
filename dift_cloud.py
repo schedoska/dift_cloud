@@ -259,10 +259,10 @@ class SDFeaturizer:
             num_images_per_prompt=1,
             do_classifier_free_guidance=False) # [1, 77, dim]
 
-        print("JABDJSBDAFFA")
-        print(len(prompt_embeds))
+        #print("JABDJSBDAFFA")
+        #print(len(prompt_embeds))
         prompt_embeds = prompt_embeds[0]
-        print(prompt_embeds)
+        #print(prompt_embeds)
 
         prompt_embeds = prompt_embeds.repeat(ensemble_size, 1, 1)
         unet_ft_all = self.pipe(
@@ -399,10 +399,7 @@ def run_model(image: Image.Image):
     img_size = 448
     img = image.resize((img_size, img_size))
     img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
-    ft.append(dift.forward(img_tensor,
-                           prompt=prompt,
-                           ensemble_size=2))
-    print(ft)
+    ft.append(dift.forward(img_tensor,prompt=prompt,ensemble_size=2))
     #ft = ft.cpu().numpy()
     ft_cpu = [t.cpu() for t in ft]
     ft_cpu = torch.cat(ft_cpu, dim=0)
@@ -414,7 +411,6 @@ def run_model(image: Image.Image):
 async def process_image(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents)).convert("RGB")
-
     result = run_model(image)
 
     # Convert numpy array → binary buffer
@@ -426,26 +422,3 @@ async def process_image(file: UploadFile = File(...)):
         content=buffer.read(),
         media_type="application/octet-stream"
     )
-
-#filelist = ['source.png', 'target.png']
-#ft = []
-#imglist = []
-# img_size = 512
-
-
-#for filename in filelist:
-#    img = Image.open(filename).convert('RGB')
-#    img = img.resize((img_size, img_size))
-#    imglist.append(img)
-#    img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
-#    ft.append(dift.forward(img_tensor,
-#                           prompt=prompt,
-#                           ensemble_size=2))
-#ft = torch.cat(ft, dim=0)
-
-#torch.cuda.empty_cache()
-#gc.collect()
-
-
-#demo = Demo(imglist, ft, img_size)
-#print(ft.shape) # N+1, C, H, W
