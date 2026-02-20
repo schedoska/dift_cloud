@@ -396,11 +396,12 @@ app = FastAPI()
 def run_model(image: Image.Image):
     #img_array = np.array(image.convert("L"))
     img_size = 448
-    img = img.resize((img_size, img_size))
+    img = image.resize((img_size, img_size))
     img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
     ft.append(dift.forward(img_tensor,
                            prompt=prompt,
                            ensemble_size=2))
+    ft = ft.cpu().numpy()
     ft = torch.cat(ft, dim=0)
     torch.cuda.empty_cache()
     gc.collect()
