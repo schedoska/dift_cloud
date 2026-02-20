@@ -404,10 +404,11 @@ def run_model(image: Image.Image):
                            ensemble_size=2))
     print(ft)
     #ft = ft.cpu().numpy()
-    ft = torch.cat(ft, dim=0)
+    ft_cpu = [t.cpu() for t in ft]
+    ft_cpu = torch.cat(ft_cpu, dim=0)
     torch.cuda.empty_cache()
     gc.collect()
-    return ft
+    return ft_cpu
 
 @app.post("/process")
 async def process_image(file: UploadFile = File(...)):
