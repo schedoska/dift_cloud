@@ -395,6 +395,7 @@ app = FastAPI()
 
 def run_model(image: Image.Image):
     #img_array = np.array(image.convert("L"))
+    ft = []
     img_size = 448
     img = image.resize((img_size, img_size))
     img_tensor = (PILToTensor()(img) / 255.0 - 0.5) * 2
