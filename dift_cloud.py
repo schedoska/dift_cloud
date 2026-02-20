@@ -402,7 +402,8 @@ def run_model(image: Image.Image):
     ft.append(dift.forward(img_tensor,
                            prompt=prompt,
                            ensemble_size=2))
-    ft = ft.cpu().numpy()
+    print(ft)
+    #ft = ft.cpu().numpy()
     ft = torch.cat(ft, dim=0)
     torch.cuda.empty_cache()
     gc.collect()
